@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="en" class="overflow-x-hidden">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Campus Lost & Found Portal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --ink: #0f172a;
+            --sun: #fbbf24;
+            --lost: #ef4444;
+            --found: #10b981;
+            --paper: #f8fafc;
+        }
+
+        html, body {
+            overflow-x: hidden;
+            width: 100%;
+            margin: 0;
+            padding: 0;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: var(--paper);
+            color: var(--ink);
+        }
+
+        h1, h2, h3, .disp {
+            font-family: 'Space Grotesk', sans-serif;
+        }
+
+        .hero-glow {
+            background: radial-gradient(circle at 50% 20%, rgba(251, 191, 36, 0.15), transparent 70%),
+                        radial-gradient(circle at 80% 80%, rgba(16, 185, 129, 0.12), transparent 50%);
+        }
+
+        .tag {
+            background: #ffffff;
+            border: 2px solid var(--ink);
+            border-radius: 1.25rem;
+            box-shadow: 4px 4px 0 var(--ink);
+            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .tag:hover {
+            transform: translateY(-4px) scale(1.01);
+            box-shadow: 8px 8px 0 var(--ink);
+        }
+
+        .pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-weight: 700;
+            font-size: 0.725rem;
+            letter-spacing: 0.025em;
+            text-transform: uppercase;
+        }
+
+        .pill.lost { background: #fee2e2; color: #dc2626; border: 1px solid #fca5a5; }
+        .pill.found { background: #d1fae5; color: #059669; border: 1px solid #6ee7b7; }
+        .pill.done { background: #f1f5f9; color: #64748b; border: 1px solid #cbd5e1; }
+
+        .btn {
+            padding: 0.65rem 1.25rem;
+            border-radius: 0.85rem;
+            border: 2px solid var(--ink);
+            font-weight: 700;
+            background: #fff;
+            transition: all 0.15s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .btn:hover {
+            background: #f1f5f9;
+            transform: translateY(-1px);
+        }
+
+        .btn.main {
+            background: var(--sun);
+            box-shadow: 3px 3px 0 var(--ink);
+        }
+
+        .btn.main:hover {
+            transform: translate(-2px, -2px);
+            box-shadow: 5px 5px 0 var(--ink);
+            background: #f59e0b;
+        }
+
+        .btn.on {
+            background: var(--ink);
+            color: #fff;
+            box-shadow: 3px 3px 0 var(--sun);
+        }
+
+        .in {
+            width: 100%;
+            padding: 0.7rem 0.9rem;
+            border: 2px solid #cbd5e1;
+            border-radius: 0.85rem;
+            background: #fff;
+            transition: all 0.15s ease;
+        }
+
+        .in:focus {
+            border-color: var(--ink);
+            box-shadow: 0 0 0 3px rgba(251, 191, 36, 0.4);
+            outline: none;
+        }
+
+        dialog {
+            border: 2px solid var(--ink);
+            border-radius: 1.5rem;
+            padding: 1.75rem;
+            width: min(92vw, 560px);
+            max-height: 90vh;
+            margin: auto;
+            box-shadow: 10px 10px 0 var(--ink);
+            animation: modalPop 0.2s ease-out;
+        }
+
+        @keyframes modalPop {
+            from { opacity: 0; transform: scale(0.95) translateY(10px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+
+        dialog::backdrop {
+            background: rgba(15, 23, 42, 0.65);
+            backdrop-filter: blur(4px);
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 1.5rem;
+            left: 50%;
+            transform: translate(-50%, 20px);
+            background: var(--ink);
+            color: #fff;
+            padding: 0.75rem 1.5rem;
+            border-radius: 9999px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            z-index: 50;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .toast.show {
+            transform: translate(-50%, 0);
+            opacity: 1;
+            pointer-events: auto;
+        }
+    </style>
+</head>
+
+<body class="min-h-screen">
+    <!-- Header -->
+    <header class="bg-slate-900 text-white relative overflow-hidden hero-glow border-b-4 border-slate-800">
+        <div class="max-w-6xl mx-auto px-4 py-12 sm:py-20 relative z-10">
+            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-800 border border-slate-700 text-xs font-semibold text-amber-400 mb-4">
+                <span>⚡ Smart Campus Hub</span>
+            </div>
+            <h1 class="text-4xl sm:text-6xl font-extrabold tracking-tight leading-none">
+                Lost something? <br><span class="text-amber-400">Let's bring it back.</span>
+            </h1>
+            <p class="mt-4 max-w-xl text-slate-300 text-base sm:text-lg">
+                Report lost items or post found belongings. Quick, safe, and campus-wide reconnection portal.
+            </p>
+            <div class="mt-8 flex flex-wrap gap-4">
+                <button id="lostBtn" class="btn main text-slate-900 font-bold">
+                    <span>🔍</span> I lost something
+                </button>
+                <button id="foundBtn" class="btn bg-slate-800 text-white border-slate-700 hover:bg-slate-700">
+                    <span>✨</span> I found something
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-6xl mx-auto px-4 py-8">
+        <!-- Live Counter Cards -->
+        <section id="stats" class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8 -mt-14 relative z-20"></section>
+
+        <!-- Search and Filters -->
+        <div class="bg-white p-4 rounded-2xl border-2 border-slate-900 shadow-[4px_4px_0_#0f172a] mb-8 space-y-4">
+            <div class="grid gap-3 md:grid-cols-[1fr_auto_auto]">
+                <div class="relative">
+                    <input id="q" type="search" class="in pl-10" placeholder="Search item, description, or campus location..." aria-label="Search">
+                    <span class="absolute left-3 top-3.5 text-slate-400">🔍</span>
+                </div>
+                <select id="cat" class="in cursor-pointer" aria-label="Category"></select>
+                <select id="status" class="in cursor-pointer" aria-label="Status">
+                    <option value="active">🟢 Open Listings</option>
+                    <option value="resolved">✅ Returned</option>
+                    <option value="all">📁 All Items</option>
+                </select>
+            </div>
+
+            <!-- Type Selector Tabs -->
+            <div id="types" class="flex gap-2 pt-2 border-t border-slate-100">
+                <button class="btn on text-sm py-2 px-4" data-t="all">All Items <span id="cnt-all" class="ml-1 px-2 py-0.5 text-xs rounded-full bg-slate-700">0</span></button>
+                <button class="btn text-sm py-2 px-4" data-t="lost">Lost <span id="cnt-lost" class="ml-1 px-2 py-0.5 text-xs rounded-full bg-slate-100">0</span></button>
+                <button class="btn text-sm py-2 px-4" data-t="found">Found <span id="cnt-found" class="ml-1 px-2 py-0.5 text-xs rounded-full bg-slate-100">0</span></button>
+            </div>
+        </div>
+
+        <!-- Cards Grid -->
+        <section id="grid" class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3"></section>
+        
+        <!-- Empty State -->
+        <div id="empty" class="hidden text-center py-16 bg-white rounded-2xl border-2 border-dashed border-slate-300">
+            <div class="text-5xl mb-3">📦</div>
+            <h3 class="text-xl font-bold text-slate-800">No listings found</h3>
+            <p class="text-slate-500 text-sm mt-1">Try adjusting your search keywords or active filters.</p>
+        </div>
+    </main>
+
+    <!-- Post Form Dialog -->
+    <dialog id="formDlg">
+        <form id="form" class="space-y-4">
+            <div class="flex justify-between items-center border-b pb-3 border-slate-200">
+                <h2 id="formTitle" class="text-2xl font-extrabold text-slate-900"></h2>
+                <button type="button" id="cancelX" class="text-slate-400 hover:text-slate-700 text-xl font-bold">&times;</button>
+            </div>
+            <input type="hidden" id="type">
+            <div>
+                <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1">Item Title</label>
+                <input id="name" class="in" placeholder="e.g. Blue Hydro Flask Water Bottle" maxlength="60" required>
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1">Category</label>
+                    <select id="fcat" class="in" aria-label="Category"></select>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1">Date</label>
+                    <input id="date" type="date" class="in" required aria-label="Date">
+                </div>
+            </div>
+            <div>
+                <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1">Campus Location</label>
+                <input id="loc" class="in" placeholder="e.g. Central Library, 2nd Floor Study Zone" maxlength="80" required>
+            </div>
+            <div>
+                <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1">Detailed Description</label>
+                <textarea id="desc" class="in" rows="3" placeholder="Colors, key features, scratches, stickers, or contents..." required></textarea>
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1">Your Name</label>
+                    <input id="cname" class="in" placeholder="e.g. Alex Rahman" maxlength="40" required>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1">Contact Info</label>
+                    <input id="contact" class="in" placeholder="Phone or Email" maxlength="60" required>
+                </div>
+            </div>
+            <div>
+                <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1">Photo (Optional)</label>
+                <input id="photo" type="file" accept="image/*" class="in bg-slate-50 cursor-pointer">
+                <div id="imgPreview" class="mt-2 hidden">
+                    <img id="previewTag" class="w-20 h-20 object-cover rounded-xl border border-slate-300">
+                </div>
+            </div>
+            <p id="err" class="text-xs font-bold text-red-500 min-h-[1rem]"></p>
+            <div class="flex justify-end gap-3 pt-2">
+                <button type="button" class="btn" id="cancel">Cancel</button>
+                <button class="btn main">Post Listing</button>
+            </div>
+        </form>
+    </dialog>
+
+    <!-- Details View Dialog -->
+    <dialog id="viewDlg">
+        <div id="view"></div>
+    </dialog>
+
+    <div id="toast" class="toast font-semibold" role="status"></div>
+
+    <script>
+        const KEY = "lostfound:items";
+        const CATS = { "ID Card": "🪪", "Keys": "🔑", "Wallet": "👛", "Books & Notes": "📓", "Electronics": "🎧", "Bags": "🎒", "Clothing": "🧥", "Other": "📦" };
+        const $ = s => document.querySelector(s);
+        const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+        const today = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`; };
+        const fmt = s => new Date(s + "T00:00").toLocaleDateString([], { day: "numeric", month: "short", year: "numeric" });
+
+        /* ---------- Storage ---------- */
+        function load() { try { return JSON.parse(localStorage.getItem(KEY)); } catch { return null; } }
+        function save() { try { localStorage.setItem(KEY, JSON.stringify(items)); return true; } catch { toast("⚠️ Storage full! Try a smaller image."); return false; } }
+
+        function seed() {
+            const ago = n => { const d = new Date(); d.setDate(d.getDate() - n); return d.toISOString().slice(0, 10); };
+            const mk = (i, type, name, category, desc, loc, n, cname, contact, resolved) =>
+                ({ id: "s" + i, type, name, category, desc, loc, date: ago(n), cname, contact, photo: "", resolved: !!resolved });
+            return [
+                mk(1, "found", "Set of 3 Keys with Red Tag", "Keys", "Found on a park bench. Includes a red rubber tag.", "Main Gate Bench", 2, "Security Desk", "Room 101 Admin"),
+                mk(2, "lost", "Sony Over-Ear Headphones", "Electronics", "Black color, small scratch on the left ear cup.", "Central Library 2nd Floor", 3, "Nusrat Jahan", "01700-000000"),
+                mk(3, "found", "Brown Leather Wallet", "Wallet", "Contains campus bus pass. Describe remaining contents to claim.", "Lecture Hall B", 4, "Tanvir", "tanvir@campus.edu"),
+                mk(4, "found", "Physics Notebook", "Books & Notes", "Green cover with thermodynamics formula notes.", "Science Lab Corridor", 6, "Lost & Found Office", "Open 9am-4pm", true)
+            ];
+        }
+
+        let items = load();
+        if (!items) { items = seed(); save(); }
+
+        /* ---------- App Logic ---------- */
+        let type = "all", q = "";
+
+        function init() {
+            const opts = Object.keys(CATS).map(c => `<option value="${c}">${CATS[c]} ${c}</option>`).join("");
+            $("#cat").innerHTML = `<option value="all">📦 All Categories</option>` + opts;
+            $("#fcat").innerHTML = opts;
+            render();
+        }
+
+        function stat(label, n, color, icon) {
+            return `<div class="bg-white border-2 border-slate-900 rounded-2xl p-4 flex items-center gap-4 shadow-[4px_4px_0_#0f172a]">
+                <div class="text-3xl">${icon}</div>
+                <div>
+                    <div class="disp text-2xl font-extrabold" style="color:${color}">${n}</div>
+                    <div class="text-xs font-bold text-slate-500 uppercase tracking-wide">${label}</div>
+                </div>
+            </div>`;
+        }
+
+        function card(it) {
+            const img = it.photo ? `<img src="${it.photo}" alt="${esc(it.name)}" class="w-full h-44 object-cover">`
+                : `<div class="h-44 grid place-items-center text-6xl bg-amber-100/60">${CATS[it.category] || "📦"}</div>`;
+            return `<div class="tag overflow-hidden flex flex-col cursor-pointer ${it.resolved ? 'opacity-65' : ''}" data-id="${it.id}">
+                <div class="px-4 py-2.5 bg-slate-50 border-b-2 border-slate-900 flex gap-2 items-center justify-between">
+                    <span class="pill ${it.type}">${it.type === "lost" ? "🔴 LOST" : "🟢 FOUND"}</span>
+                    ${it.resolved ? `<span class="pill done">✅ RETURNED</span>` : ""}
+                </div>
+                ${img}
+                <div class="p-5 flex-1 flex flex-col justify-between">
+                    <div>
+                        <h3 class="font-extrabold text-lg text-slate-900 leading-snug">${esc(it.name)}</h3>
+                        <p class="text-xs font-semibold text-slate-500 mt-2 flex items-center gap-1">📍 ${esc(it.loc)}</p>
+                    </div>
+                    <div class="mt-4 pt-3 border-t border-slate-100 flex justify-between items-center text-xs font-medium text-slate-400">
+                        <span>${esc(it.category)}</span>
+                        <span>${fmt(it.date)}</span>
+                    </div>
+                </div>
+            </div>`;
+        }
+
+        function render() {
+            const s = $("#status").value, c = $("#cat").value, t = q.toLowerCase();
+            const list = items.filter(i =>
+                (type === "all" || i.type === type) && (c === "all" || i.category === c) &&
+                (s === "all" || (s === "resolved") === i.resolved) &&
+                (!t || (i.name + " " + i.desc + " " + i.loc).toLowerCase().includes(t)))
+                .sort((a, b) => b.date.localeCompare(a.date));
+
+            $("#grid").innerHTML = list.map(card).join("");
+            $("#empty").classList.toggle("hidden", list.length > 0);
+
+            $("#cnt-all").textContent = items.length;
+            $("#cnt-lost").textContent = items.filter(i => i.type === "lost").length;
+            $("#cnt-found").textContent = items.filter(i => i.type === "found").length;
+
+            const open = ty => items.filter(i => i.type === ty && !i.resolved).length;
+            $("#stats").innerHTML = 
+                stat("Active Lost", open("lost"), "#ef4444", "🔍") +
+                stat("Awaiting Claim", open("found"), "#10b981", "🎁") +
+                stat("Returned Home", items.filter(i => i.resolved).length, "#0f172a", "✨");
+        }
+
+        function toast(m) { 
+            const t = $("#toast"); 
+            t.textContent = m; 
+            t.classList.add("show"); 
+            setTimeout(() => t.classList.remove("show"), 2500); 
+        }
+
+        function showItem(id) {
+            const it = items.find(i => i.id === id); if (!it) return;
+            const img = it.photo ? `<img src="${it.photo}" alt="${esc(it.name)}" class="w-full max-h-64 object-cover rounded-xl border-2 border-slate-900 mb-4">`
+                : `<div class="h-32 grid place-items-center text-6xl rounded-xl bg-amber-100/60 border-2 border-slate-900 mb-4">${CATS[it.category] || "📦"}</div>`;
+            
+            const actionTip = it.type === "found"
+                ? `Think this belongs to you? Contact <b>${esc(it.cname)}</b> via <b>${esc(it.contact)}</b>. Be ready to describe specific proof of ownership.`
+                : `Have you seen this? Reach out to <b>${esc(it.cname)}</b> at <b>${esc(it.contact)}</b> to return it safely.`;
+
+            $("#view").innerHTML = `
+                <div class="flex gap-2 mb-3">
+                    <span class="pill ${it.type}">${it.type === "lost" ? "🔴 LOST" : "🟢 FOUND"}</span>
+                    ${it.resolved ? `<span class="pill done">✅ RETURNED</span>` : ""}
+                </div>
+                ${img}
+                <h2 class="text-2xl font-extrabold text-slate-900">${esc(it.name)}</h2>
+                <p class="text-xs font-semibold text-slate-500 mt-1">📍 ${esc(it.loc)} · ${esc(it.category)} · ${fmt(it.date)}</p>
+                <p class="mt-4 text-slate-700 leading-relaxed text-sm">${esc(it.desc)}</p>
+                
+                <div class="mt-4 p-4 rounded-xl bg-amber-50 border-2 border-slate-900 text-xs text-slate-800 leading-normal">
+                    💡 <b>Contact Details:</b><br>${actionTip}
+                </div>
+                
+                <div class="flex flex-wrap justify-end gap-2 mt-6">
+                    <button class="btn bg-red-50 text-red-600 border-red-300 hover:bg-red-100 text-xs" data-act="del" data-id="${it.id}">Delete</button>
+                    <button class="btn main text-xs" data-act="toggle" data-id="${it.id}">${it.resolved ? "Reopen Listing" : "Mark as Returned"}</button>
+                    <button class="btn text-xs" data-act="close">Close</button>
+                </div>`;
+            $("#viewDlg").showModal();
+        }
+
+        function openForm(t) {
+            $("#form").reset(); 
+            $("#err").textContent = "";
+            $("#imgPreview").classList.add("hidden");
+            $("#type").value = t; 
+            $("#date").value = $("#date").max = today();
+            $("#formTitle").textContent = t === "lost" ? "Report a Lost Item" : "Report a Found Item";
+            $("#formDlg").showModal();
+        }
+
+        $("#photo").addEventListener("change", e => {
+            const file = e.target.files[0];
+            if (file) {
+                $("#previewTag").src = URL.createObjectURL(file);
+                $("#imgPreview").classList.remove("hidden");
+            }
+        });
+
+        function readPhoto(file) {
+            return new Promise(res => {
+                if (!file) return res("");
+                const r = new FileReader();
+                r.onerror = () => res("");
+                r.onload = () => {
+                    const img = new Image();
+                    img.onerror = () => res("");
+                    img.onload = () => {
+                        const k = Math.min(1, 500 / Math.max(img.width, img.height)), c = document.createElement("canvas");
+                        c.width = img.width * k; c.height = img.height * k;
+                        c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
+                        res(c.toDataURL("image/jpeg", 0.7));
+                    };
+                    img.src = r.result;
+                };
+                r.readAsDataURL(file);
+            });
+        }
+
+        $("#form").addEventListener("submit", async e => {
+            e.preventDefault();
+            const v = id => $(id).value.trim();
+            if ([v("#name"), v("#loc"), v("#desc"), v("#cname"), v("#contact")].some(x => !x)) 
+                return $("#err").textContent = "Please complete all required fields.";
+            if (v("#date") > today()) 
+                return $("#err").textContent = "Date cannot be set in the future.";
+            
+            const photo = await readPhoto($("#photo").files[0]);
+            items.unshift({
+                id: String(Date.now()), type: v("#type"), name: v("#name"), category: $("#fcat").value, desc: v("#desc"),
+                loc: v("#loc"), date: v("#date"), cname: v("#cname"), contact: v("#contact"), photo, resolved: false
+            });
+            
+            if (!save()) { items.shift(); return; }
+            $("#formDlg").close(); 
+            render(); 
+            toast("✅ Report posted successfully!");
+        });
+
+        $("#lostBtn").onclick = () => openForm("lost");
+        $("#foundBtn").onclick = () => openForm("found");
+        $("#cancel").onclick = $("#cancelX").onclick = () => $("#formDlg").close();
+        $("#q").addEventListener("input", e => { q = e.target.value; render(); });
+        $("#cat").onchange = $("#status").onchange = render;
+        
+        $("#types").addEventListener("click", e => {
+            const b = e.target.closest("[data-t]"); if (!b) return;
+            type = b.dataset.t;
+            document.querySelectorAll("#types [data-t]").forEach(x => {
+                x.classList.toggle("on", x === b);
+                const badge = x.querySelector("span");
+                if (badge) badge.className = x === b ? "ml-1 px-2 py-0.5 text-xs rounded-full bg-slate-700" : "ml-1 px-2 py-0.5 text-xs rounded-full bg-slate-100";
+            }); 
+            render();
+        });
+
+        $("#grid").addEventListener("click", e => { 
+            const c = e.target.closest("[data-id]"); 
+            if (c) showItem(c.dataset.id); 
+        });
+
+        $("#viewDlg").addEventListener("click", e => {
+            const b = e.target.closest("[data-act]"); if (!b) return;
+            const id = b.dataset.id;
+            if (b.dataset.act === "close") return $("#viewDlg").close();
+            if (b.dataset.act === "toggle") { 
+                const it = items.find(i => i.id === id); 
+                it.resolved = !it.resolved; 
+                save(); 
+                toast(it.resolved ? "Item marked as returned!" : "Listing reopened."); 
+            }
+            if (b.dataset.act === "del") { 
+                if (!confirm("Are you sure you want to delete this listing?")) return; 
+                items = items.filter(i => i.id !== id); 
+                save(); 
+                toast("Listing deleted."); 
+            }
+            $("#viewDlg").close(); 
+            render();
+        });
+
+        init();
+    </script>
+</body>
+
+</html>
